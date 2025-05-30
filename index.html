@@ -189,7 +189,7 @@
     <nav>
         <ul>
             <li><a href="index.html">Home</a></li>
-            <li><a href="#" id="open-customises-modal-btn">customises</a></li>
+            <li><a href="#" id="open-customise-modal-btn">customise</a></li>
             <li><a href="#" id="nav-share-btn">Share</a></li> </ul>
     </nav>
 
@@ -203,10 +203,10 @@
         </div>
     </main>
 
-    <div id="customises-modal" class="modal">
+    <div id="customise-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal-btn">&times;</span>
-            <h1>customises</h1>
+            <h1>customise</h1>
             <div class="customise-group">
                 <label for="modal-accent-color">Quote Box Accent Color:</label>
                 <input type="color" id="modal-accent-color" value="#007bff">
@@ -241,7 +241,7 @@
                     <input type="checkbox" id="modal-bg-overlay"> <span class="inline-label">Add Dark Overlay (for uploaded image)</span>
                 </label>
             </div>
-            <button id="modal-save-customisation-btn">Save customises</button>
+            <button id="modal-save-customisation-btn">Save customise</button>
             <div id="modal-status-message" class="status-message"></div>
         </div>
     </div>
@@ -375,10 +375,10 @@
         newQuoteBtn.addEventListener('click', displayQuote);
 
 
-        // --- Main Page customises Application Logic ---
+        // --- Main Page customise Application Logic ---
         // (This part remains the same as your previous full version)
         const mainContentElement = document.getElementById('main-content'); 
-        function applycustomises() {
+        function applycustomise() {
             const savedAccentColor = localStorage.getItem('quoteAccentColor');
             const savedQuoteTextSize = localStorage.getItem('quoteTextSize');
             const rootStyles = getComputedStyle(document.documentElement);
@@ -408,11 +408,11 @@
             } 
         }
 
-        // --- customises Modal Logic ---
+        // --- customise Modal Logic ---
         // (This part remains the same as your previous full version)
-        const customisesModal = document.getElementById('customises-modal');
-        const opencustomisesModalBtn = document.getElementById('open-customises-modal-btn');
-        const closeModalBtn = customisesModal.querySelector('.close-modal-btn');
+        const customiseModal = document.getElementById('customise-modal');
+        const opencustomiseModalBtn = document.getElementById('open-customise-modal-btn');
+        const closeModalBtn = customiseModal.querySelector('.close-modal-btn');
         const modalAccentColorInput = document.getElementById('modal-accent-color');
         const modalQuoteTextSizeSelect = document.getElementById('modal-quote-text-size');
         const modalBgTypeRadios = document.querySelectorAll('input[name="modal-bg-type"]');
@@ -425,14 +425,14 @@
         const modalStatusMessageDiv = document.getElementById('modal-status-message');
         let modalUploadedImageDataUrl = null; 
 
-        opencustomisesModalBtn.onclick = function(event) { 
+        opencustomiseModalBtn.onclick = function(event) { 
             event.preventDefault(); 
-            customisesModal.style.display = "block";
-            loadcustomisesIntoModal();
+            customiseModal.style.display = "block";
+            loadcustomiseIntoModal();
         }
-        closeModalBtn.onclick = function() { customisesModal.style.display = "none"; }
+        closeModalBtn.onclick = function() { customiseModal.style.display = "none"; }
         window.onclick = function(event) { 
-            if (event.target == customisesModal) { customisesModal.style.display = "none"; }
+            if (event.target == customiseModal) { customiseModal.style.display = "none"; }
         }
 
         function toggleModalConditionalInputs() {
@@ -476,7 +476,7 @@
             }
         });
 
-        function loadcustomisesIntoModal() {
+        function loadcustomiseIntoModal() {
             modalAccentColorInput.value = localStorage.getItem('quoteAccentColor') || getComputedStyle(document.documentElement).getPropertyValue('--quote-accent-color').trim();
             modalQuoteTextSizeSelect.value = localStorage.getItem('quoteTextSize') || getComputedStyle(document.documentElement).getPropertyValue('--quote-text-size').trim();
             const currentBgType = localStorage.getItem('backgroundType') || 'color';
@@ -515,15 +515,15 @@
             } else if (selectedBgType === 'color') {
                 localStorage.setItem('backgroundOverlay', 'false'); 
             }
-            applycustomises(); 
-            modalStatusMessageDiv.textContent = 'customises saved successfully!';
+            applycustomise(); 
+            modalStatusMessageDiv.textContent = 'customise saved successfully!';
             modalStatusMessageDiv.className = 'status-message success';
             modalStatusMessageDiv.style.display = 'block';
             setTimeout(() => { 
                 modalStatusMessageDiv.style.display = 'none';
             }, 2000);
             if (selectedBgType === 'uploadedImage' && modalUploadedImageDataUrl) {
-                 loadcustomisesIntoModal(); 
+                 loadcustomiseIntoModal(); 
             }
             modalUploadedImageDataUrl = null; 
         });
@@ -573,7 +573,7 @@
 
         // --- Initial setup ---
         document.addEventListener('DOMContentLoaded', () => {
-            applycustomises(); 
+            applycustomise(); 
             displayQuote();  
         });
         // Listener for storage changes
@@ -583,7 +583,7 @@
                 'uploadedImage_DataUrl', 'uploadedImage_Name', 'backgroundOverlay'
             ];
             if (event.key === null || relevantKeys.includes(event.key)) {
-                applycustomises();
+                applycustomise();
             }
         });
     </script>
