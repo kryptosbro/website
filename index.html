@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motivational Quote</title>
+    <style>
+        :root {
+            --quote-accent-color: #007bff;
+            --quote-text-size: 1.65em;
+            --page-default-bg-color: #f8f9fa; 
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; 
+            margin: 0;
+            background-color: var(--page-default-bg-color); 
+            color: #212529;
+            box-sizing: border-box; 
+            position: relative;
+        }
+        
+        nav, main#main-content { position: relative; z-index: 1; }
+
+        nav {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            overflow: hidden; box-shadow: none; margin-bottom: 20px; 
+            padding-top: 10px; padding-bottom: 10px;
+            border: 1px solid rgba(204, 204, 204, 0.5); box-sizing: border-box; 
+        }
+        nav ul { list-style-type: none; margin: 0; padding: 0; display: flex; justify-content: center; }
+        nav ul li a {
+            display: block; color: #333; 
+            text-shadow: 0px 0px 3px rgba(255,255,255,0.7);
+            text-align: center; padding: 10px 20px; text-decoration: none; 
+            font-size: 1em; font-weight: 500; 
+            cursor: pointer; 
+        }
+        nav ul li a:hover { color: var(--quote-accent-color); background-color: transparent; }
+
+        main#main-content {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; 
+            width: 100%; padding: 20px; box-sizing: border-box;
+            position: relative; 
+            background-size: cover;
+            background-position: center top; 
+            background-repeat: no-repeat;
+        }
+
+        main#main-content::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3); 
+            z-index: 0; 
+            display: none; 
+            pointer-events: none; 
+        }
+        main#main-content.has-overlay::before {
+            display: block;
+        }
+
+        #quote-container {
+            background-color: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            padding: 30px 40px;
+            border-left: 5px solid var(--quote-accent-color); 
+            border-radius: 12px; max-width: 550px; width: 100%;
+            text-align: center; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+            position: relative; 
+            z-index: 1;
+        }
+        #quote-text {
+            font-size: var(--quote-text-size); line-height: 1.6;
+            margin-top: 0; margin-bottom: 20px; font-weight: 300; color: #111; 
+            min-height: 50px; 
+        }
+        #quote-author {
+            font-size: 0.95em; font-style: normal; font-weight: 500;
+            color: #333; margin-bottom: 20px; 
+            min-height: 1.2em; 
+        }
+        #quote-author::before { content: "— "; }
+        #quote-author:empty::before { content: ""; } 
+
+        .quote-actions { 
+            display: flex;
+            justify-content: center;
+            gap: 10px; 
+            margin-top: 20px;
+        }
+
+        .quote-actions button { 
+            font-family: inherit; font-size: 0.9em; font-weight: 500;
+            padding: 10px 20px; 
+            color: #212529;
+            background-color: rgba(255,255,255,0.3); 
+            border: 1px solid rgba(173, 181, 189, 0.7); 
+            border-radius: 5px; cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        /* Only one button now, so we can simplify or target #new-quote-btn directly if needed */
+        #new-quote-btn:hover { 
+            background-color: rgba(233, 236, 239, 0.7); 
+            border-color: #6c757d; 
+        }
+        #new-quote-btn:focus { 
+            outline: 2px solid var(--quote-accent-color); 
+            outline-offset: 2px; 
+        }
+        
+        /* --- Modal Styles --- */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); 
+        }
+        .modal-content {
+            background-color: #f8f9fa; margin: 10vh auto; padding: 30px;
+            border-radius: 8px; width: 90%; max-width: 550px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative;
+        }
+        .close-modal-btn {
+            color: #aaa; float: right; font-size: 28px; font-weight: bold; line-height: 1;
+        }
+        .close-modal-btn:hover, .close-modal-btn:focus {
+            color: black; text-decoration: none; cursor: pointer;
+        }
+        .modal-content h1 {
+            text-align: center; color: #333; font-weight: 600; 
+            font-size: 1.8em; margin-top:0; margin-bottom: 40px; 
+        }
+        .modal-content .setting-group { margin-bottom: 25px; padding-bottom: 0; border-bottom: none; }
+        .modal-content .setting-group:last-of-type { margin-bottom: 20px; }
+        .modal-content label {
+            display: block; margin-bottom: 10px; font-weight: 500;
+            font-size: 0.95em; color: #454545;
+        }
+        .modal-content select, 
+        .modal-content input[type="text"],
+        .modal-content input[type="url"] {
+            width: 100%; padding: 12px 8px; border-radius: 0; border: none;
+            border-bottom: 1px solid #ccc; box-sizing: border-box; font-size: 1em;
+            background-color: #fff; margin-bottom: 5px; transition: border-color 0.2s ease;
+        }
+        .modal-content select:focus, 
+        .modal-content input[type="text"]:focus, 
+        .modal-content input[type="url"]:focus {
+            outline: none; border-bottom-color: #007bff; 
+        }
+        .modal-content input[type="color"] {
+            width: 100%; min-height: 40px; border: 1px solid #ddd; 
+            border-radius: 4px; padding: 5px; box-sizing: border-box;
+        }
+        .modal-content input[type="file"] { width: 100%; padding: 8px 0px; font-size: 0.95em; color: #333; }
+        .modal-content input[type="radio"], .modal-content input[type="checkbox"] {
+            margin-right: 8px; vertical-align: middle; accent-color: #007bff; 
+        }
+        .modal-content label.inline-label {
+             display: inline-block; font-weight: normal; font-size: 0.95em;
+             margin-bottom: 8px; color: #333;
+        }
+        .modal-content .conditional-input { display: none; margin-top: 15px; padding-left: 10px; }
+        .modal-content .file-info { font-size: 0.85em; color: #666; margin-top: 8px; padding-left: 5px; }
+        .modal-content button#modal-save-settings-btn {
+            display: block; width: 100%; padding: 12px 20px; background-color: transparent;
+            color: #007bff; border: 1px solid #007bff; border-radius: 4px; 
+            font-size: 1em; font-weight: 500; cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease; margin-top: 30px; 
+        }
+        .modal-content button#modal-save-settings-btn:hover { background-color: #007bff; color: white; }
+        .modal-content .status-message {
+            text-align: center; margin-top: 15px; padding: 10px; border-radius: 4px;
+            font-size: 0.9em; display: none; 
+        }
+        .modal-content .status-message.success { background-color: #e6f7ff; color: #0056b3; border: 1px solid #b3d7ff; }
+        .modal-content .status-message.error { background-color: #ffe6e6; color: #b30000; border: 1px solid #ffb3b3; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="#" id="open-settings-modal-btn">Settings</a></li>
+            <li><a href="#" id="nav-share-btn">Share</a></li> </ul>
+    </nav>
+
+    <main id="main-content">
+        <div id="quote-container">
+            <p id="quote-text">Your motivational quote will appear here.</p>
+            <p id="quote-author"></p>
+            <div class="quote-actions">
+                <button id="new-quote-btn">Get New Quote</button>
+                </div>
+        </div>
+    </main>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal-btn">&times;</span>
+            <h1>Settings</h1>
+            <div class="setting-group">
+                <label for="modal-accent-color">Quote Box Accent Color:</label>
+                <input type="color" id="modal-accent-color" value="#007bff">
+            </div>
+            <div class="setting-group">
+                <label for="modal-quote-text-size">Quote Text Size:</label>
+                <select id="modal-quote-text-size">
+                    <option value="1.4em">Small</option>
+                    <option value="1.65em">Medium (Default)</option>
+                    <option value="1.9em">Large</option>
+                    <option value="2.2em">Extra Large</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label>Page Background (Main Area):</label>
+                <div>
+                    <input type="radio" id="modal-bg-type-color" name="modal-bg-type" value="color" checked>
+                    <label for="modal-bg-type-color" class="inline-label">Solid Color (Default)</label>
+                </div>
+                <div>
+                    <input type="radio" id="modal-bg-type-uploaded-image" name="modal-bg-type" value="uploadedImage">
+                    <label for="modal-bg-type-uploaded-image" class="inline-label">Upload Image</label>
+                </div>
+                <div id="modal-image-upload-input-container" class="conditional-input">
+                    <label for="modal-bg-image-upload">Choose Image File:</label>
+                    <input type="file" id="modal-bg-image-upload" accept="image/*">
+                    <div id="modal-image-upload-info" class="file-info">Max 2MB recommended. Stored in browser.</div>
+                </div>
+            </div>
+            <div id="modal-overlay-input-container" class="setting-group conditional-input">
+                <label>
+                    <input type="checkbox" id="modal-bg-overlay"> <span class="inline-label">Add Dark Overlay (for uploaded image)</span>
+                </label>
+            </div>
+            <button id="modal-save-settings-btn">Save Settings</button>
+            <div id="modal-status-message" class="status-message"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Quote Elements and Hardcoded Quotes ---
+        const quoteTextElement = document.getElementById('quote-text');
+        const quoteAuthorElement = document.getElementById('quote-author');
+        const newQuoteBtn = document.getElementById('new-quote-btn');
+        // const shareFacebookBtn = document.getElementById('share-facebook-btn'); // Removed this line
+
+        const quotes = [
+            { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+            { text: "Strive not to be a success, but rather to be of value.", author: "Albert Einstein" },
+            { text: "The mind is everything. What you think you become.", author: "Buddha" },
+            { text: "Your time is limited, so don’t waste it living someone else’s life.", author: "Steve Jobs" },
+            { text: "The purpose of our lives is to be happy.", author: "Dalai Lama" },
+            { text: "Life is what happens when you’re busy making other plans.", author: "John Lennon" },
+            { text: "Get busy living or get busy dying.", author: "Stephen King" },
+            { text: "You only live once, but if you do it right, once is enough.", author: "Mae West" },
+            { text: "Many of life’s failures are people who did not realize how close they were to success when they gave up.", author: "Thomas A. Edison" },
+            { text: "If you want to live a happy life, tie it to a goal, not to people or things.", author: "Albert Einstein" },
+            { text: "Never let the fear of striking out keep you from playing the game.", author: "Babe Ruth" },
+            { text: "Money and success don’t change people; they merely amplify what is already there.", author: "Will Smith" },
+            { text: "Not how long, but how well you have lived is the main thing.", author: "Seneca" },
+            { text: "If life were predictable it would cease to be life, and be without flavor.", author: "Eleanor Roosevelt" },
+            { text: "The whole secret of a successful life is to find out what is one’s destiny to do, and then do it.", author: "Henry Ford" },
+            { text: "In order to write about life first you must live it.", author: "Ernest Hemingway" },
+            { text: "The big lesson in life, baby, is never be scared of anyone or anything.", author: "Frank Sinatra" },
+            { text: "Curiosity about life in all of its aspects, I think, is still the secret of great creative people.", author: "Leo Burnett" },
+            { text: "Life is not a problem to be solved, but a reality to be experienced.", author: "Soren Kierkegaard" },
+            { text: "The unexamined life is not worth living.", author: "Socrates" },
+            { text: "Turn your wounds into wisdom.", author: "Oprah Winfrey" },
+            { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+            { text: "Don't let yesterday take up too much of today.", author: "Will Rogers" },
+            { text: "You learn more from failure than from success. Don’t let it stop you. Failure builds character.", author: "Unknown" },
+            { text: "It’s not whether you get knocked down, it’s whether you get up.", author: "Vince Lombardi" },
+            { text: "If you are working on something that you really care about, you don’t have to be pushed. The vision pulls you.", author: "Steve Jobs" },
+            { text: "People who are crazy enough to think they can change the world, are the ones who do.", author: "Rob Siltanen" },
+            { text: "Failure will never overtake me if my determination to succeed is strong enough.", author: "Og Mandino" },
+            { text: "Entrepreneurs are great at dealing with uncertainty and also very good at minimizing risk. That’s the classic entrepreneur.", author: "Mohnish Pabrai" },
+            { text: "We may encounter many defeats but we must not be defeated.", author: "Maya Angelou" },
+            { text: "Knowing is not enough; we must apply. Willing is not enough; we must do.", author: "Johann Wolfgang von Goethe" },
+            { text: "Imagine your life is perfect in every respect; what would it look like?", author: "Brian Tracy" },
+            { text: "We generate fears while we sit. We overcome them by action.", author: "Dr. Henry Link" },
+            { text: "Whether you think you can or think you can’t, you’re right.", author: "Henry Ford" },
+            { text: "Security is mostly a superstition. Life is either a daring adventure or nothing.", author: "Helen Keller" },
+            { text: "The man who has confidence in himself gains the confidence of others.", author: "Hasidic Proverb" },
+            { text: "The only limit to our realization of tomorrow will be our doubts of today.", author: "Franklin D. Roosevelt" },
+            { text: "Creativity is intelligence having fun.", author: "Albert Einstein" },
+            { text: "What you lack in talent can be made up with desire, hustle and giving 110% all the time.", author: "Don Zimmer" },
+            { text: "Do what you can with all you have, wherever you are.", author: "Theodore Roosevelt" },
+            { text: "Develop an ‘Attitude of Gratitude’. Say thank you to everyone you meet for everything they do for you.", author: "Brian Tracy" },
+            { text: "You are never too old to set another goal or to dream a new dream.", author: "C.S. Lewis" },
+            { text: "To see what is right and not do it is a lack of courage.", author: "Confucius" },
+            { text: "Reading is to the mind, as exercise is to the body.", author: "Brian Tracy" },
+            { text: "Fake it until you make it! Act as if you had all the confidence you require until it becomes your reality.", author: "Brian Tracy" },
+            { text: "The future belongs to the competent. Get good, get better, be the best!", author: "Brian Tracy" },
+            { text: "For every reason it’s not possible, there are hundreds of people who have faced the same circumstances and succeeded.", author: "Jack Canfield" },
+            { text: "Things work out best for those who make the best of how things work out.", author: "John Wooden" },
+            { text: "A goal is a dream with a deadline.", author: "Napoleon Hill" },
+            { text: "I think goals should never be easy, they should force you to work, even if they are uncomfortable at the time.", author: "Michael Phelps" },
+            { text: "One of the lessons that I grew up with was to always stay true to yourself and never let what somebody else says distract you from your goals.", author: "Michelle Obama" },
+            { text: "The only person you are destined to become is the person you decide to be.", author: "Ralph Waldo Emerson" },
+            { text: "Go confidently in the direction of your dreams! Live the life you’ve imagined.", author: "Henry David Thoreau" },
+            { text: "When you have a dream, you've got to grab it and never let go.", author: "Carol Burnett" },
+            { text: "There is nothing impossible to him who will try.", author: "Alexander the Great" },
+            { text: "The bad news is time flies. The good news is you’re the pilot.", author: "Michael Altshuler" },
+            { text: "Life has got all those twists and turns. You’ve got to hold on tight and off you go.", author: "Nicole Kidman" },
+            { text: "Keep your face always toward the sunshine, and shadows will fall behind you.", author: "Walt Whitman" },
+            { text: "Be courageous. Challenge orthodoxy. Stand up for what you believe in. When you are in your rocking chair talking to your grandchildren many years from now, be sure you have a good story to tell.", author: "Amal Clooney" },
+            { text: "You make a choice: continue living your life feeling muddled in this abyss of self-misunderstanding, or you find your identity independent of it. You draw your own box.", author: "Duchess Meghan" },
+            { text: "I just want you to know that if you are out there and you are being really hard on yourself right now for something that has happened ... it's normal. That is what is going to happen to you in life. No one gets through unscathed. We are all going to have a few scratches on us. Please be kind to yourselves and stand up for yourself, please.", author: "Taylor Swift" },
+            { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+            { text: "You define your own life. Don't let other people write your script.", author: "Oprah Winfrey" },
+            { text: "You are never too old to set another goal or to dream a new dream.", author: "Malala Yousafzai" },
+            { text: "At the end of the day, whether or not those people are comfortable with how you’re living your life doesn’t matter. What matters is whether you’re comfortable with it.", author: "Dr. Phil" },
+            { text: "People tell you the world looks a certain way. Parents tell you how to think. Schools tell you how to think. TV. Religion. And then at a certain point, if you’re lucky, you realize you can make up your own mind. Nobody sets the rules but you. You can design your own life.", author: "Carrie Ann Moss" },
+            { text: "For me, becoming isn’t about arriving somewhere or achieving a certain aim. I see it instead as forward motion, a means of evolving, a way to reach continuously toward a better self. The journey doesn’t end.", author: "Michelle Obama" },
+            { text: "Spread love everywhere you go.", author: "Mother Teresa" },
+            { text: "Do not allow people to dim your shine because they are blinded. Tell them to put some sunglasses on.", author: "Lady Gaga" },
+            { text: "If you make your internal life a priority, then everything else you need on the outside will be given to you and it will be poetry.", author: "Alanis Morissette" },
+            { text: "You don’t always need a plan. Sometimes you just need to breathe, trust, let go and see what happens.", author: "Mandy Hale" },
+            { text: "You can be everything. You can be the infinite amount of things that people are.", author: "Kesha" },
+            { text: "What lies behind you and what lies in front of you, pales in comparison to what lies inside of you.", author: "Ralph Waldo Emerson" },
+            { text: "Belief creates the actual fact.", author: "William James" },
+            { text: "No matter what people tell you, words and ideas can change the world.", author: "Robin Williams" },
+            { text: "I’m not going to continue knocking that old door that doesn’t open for me. I’m going to create my own door and walk through that.", author: "Ava DuVernay" },
+            { text: "It is during our darkest moments that we must focus to see the light.", author: "Aristotle" },
+            { text: "Not having the best situation, but seeing the best in your situation is the key to happiness.", author: "Marie Forleo" },
+            { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+            { text: "Weaknesses are just strengths in the wrong environment.", author: "Marianne Cantwell" },
+            { text: "Just don’t give up trying to do what you really want to do. Where there is love and inspiration, I don’t think you can go wrong.", author: "Ella Fitzgerald" },
+            { text: "Silence is the last thing the world will ever hear from me.", author: "Marlee Matlin" },
+            { text: "In a gentle way, you can shake the world.", author: "Mahatma Gandhi" },
+            { text: "Learning how to be still, to really be still and let life happen—that stillness becomes a radiance.", author: "Morgan Freeman" },
+            { text: "Everyone has inside of him a piece of good news. The good news is that you don’t know how great you can be! How much you can love! What you can accomplish! And what your potential is!", author: "Anne Frank" },
+            { text: "All you need is the plan, the road map, and the courage to press on to your destination.", author: "Earl Nightingale" },
+            { text: "I care about decency and humanity and kindness. Kindness today is an act of rebellion.", author: "Pink" },
+            { text: "If you have good thoughts, they will shine out of your face like sunbeams and you will always look lovely.", author: "Roald Dahl" },
+            { text: "Try to be a rainbow in someone’s cloud.", author: "Maya Angelou" },
+            { text: "We must let go of the life we have planned, so as to accept the one that is waiting for us.", author: "Joseph Campbell" },
+            { text: "Find out who you are and be that person. That's what your soul was put on this earth to be. Find that truth, live that truth, and everything else will come.", author: "Ellen DeGeneres" },
+            { text: "Real change, enduring change, happens one step at a time.", author: "Ruth Bader Ginsburg" },
+            { text: "Wake up determined, go to bed satisfied.", author: "Dwayne Johnson" },
+            { text: "Nobody built like you, you design yourself.", author: "Jay-Z" },
+            { text: "You gain strength, courage, and confidence by every experience in which you really stop to look fear in the face. You are able to say to yourself, 'I lived through this horror. I can take the next thing that comes along.' You must do the thing you think you cannot do.", author: "Eleanor Roosevelt" },
+            { text: "I tell myself, 'You've been through so much, you've endured so much, time will allow me to heal, and soon this will be just another memory that made me the strong woman, athlete, and mother I am today.'", author: "Serena Williams" },
+            { text: "Live your beliefs and you can turn the world around.", author: "Henry David Thoreau" },
+            { text: "Our lives are stories in which we write, direct and star in the leading role. Some chapters are happy while others bring lessons to learn, but we always have the power to be the heroes of our own adventures.", author: "Joelle Speranza" },
+            { text: "Life is like riding a bicycle. To keep your balance, you must keep moving.", author: "Albert Einstein" },
+            { text: "Don't try to lessen yourself for the world; let the world catch up to you.", author: "Beyoncé" },
+            { text: "There's nothing more prized than total genius, and there's nothing more dangerous than total genius.", author: "Howard Fast" },
+            { text: "If you don't like the road you're walking, start paving another one.", author: "Dolly Parton" },
+            { text: "I have learned over the years that when one's mind is made up, this diminishes fear; knowing what must be done does away with fear.", author: "Rosa Parks" },
+            { text: "The moment you doubt whether you can fly, you cease forever to be able to do it.", author: "J.M. Barrie" }
+        ];
+
+        function displayQuote() {
+            if (quotes.length === 0) {
+                quoteTextElement.textContent = 'No quotes available.';
+                quoteAuthorElement.textContent = '';
+                return;
+            }
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            const randomQuote = quotes[randomIndex];
+            
+            quoteTextElement.textContent = randomQuote.text;
+            quoteAuthorElement.textContent = randomQuote.author || 'Unknown'; 
+        }
+        newQuoteBtn.addEventListener('click', displayQuote);
+
+
+        // --- Main Page Settings Application Logic ---
+        // (This part remains the same as your previous full version)
+        const mainContentElement = document.getElementById('main-content'); 
+        function applySettings() {
+            const savedAccentColor = localStorage.getItem('quoteAccentColor');
+            const savedQuoteTextSize = localStorage.getItem('quoteTextSize');
+            const rootStyles = getComputedStyle(document.documentElement);
+            const defaultAccentColor = rootStyles.getPropertyValue('--quote-accent-color').trim();
+            const defaultQuoteTextSize = rootStyles.getPropertyValue('--quote-text-size').trim();
+            const defaultPageBgColor = rootStyles.getPropertyValue('--page-default-bg-color').trim();
+
+            document.documentElement.style.setProperty('--quote-accent-color', savedAccentColor || defaultAccentColor);
+            document.documentElement.style.setProperty('--quote-text-size', savedQuoteTextSize || defaultQuoteTextSize);
+            
+            const bgType = localStorage.getItem('backgroundType') || 'color';
+            const uploadedImageDataUrl = localStorage.getItem('uploadedImage_DataUrl');
+            const useOverlay = localStorage.getItem('backgroundOverlay') === 'true';
+
+            document.body.style.backgroundColor = defaultPageBgColor;
+            document.body.style.backgroundImage = 'none'; 
+
+            mainContentElement.style.backgroundImage = 'none';
+            mainContentElement.style.backgroundColor = 'transparent'; 
+            mainContentElement.classList.remove('has-overlay');
+
+            if (bgType === 'uploadedImage' && uploadedImageDataUrl) {
+                mainContentElement.style.backgroundImage = `url('${uploadedImageDataUrl}')`;
+                if (useOverlay) {
+                    mainContentElement.classList.add('has-overlay');
+                }
+            } 
+        }
+
+        // --- Settings Modal Logic ---
+        // (This part remains the same as your previous full version)
+        const settingsModal = document.getElementById('settings-modal');
+        const openSettingsModalBtn = document.getElementById('open-settings-modal-btn');
+        const closeModalBtn = settingsModal.querySelector('.close-modal-btn');
+        const modalAccentColorInput = document.getElementById('modal-accent-color');
+        const modalQuoteTextSizeSelect = document.getElementById('modal-quote-text-size');
+        const modalBgTypeRadios = document.querySelectorAll('input[name="modal-bg-type"]');
+        const modalImageUploadInputContainer = document.getElementById('modal-image-upload-input-container');
+        const modalBgImageUploadInput = document.getElementById('modal-bg-image-upload');
+        const modalImageUploadInfo = document.getElementById('modal-image-upload-info');
+        const modalOverlayInputContainer = document.getElementById('modal-overlay-input-container');
+        const modalBgOverlayCheckbox = document.getElementById('modal-bg-overlay');
+        const modalSaveButton = document.getElementById('modal-save-settings-btn');
+        const modalStatusMessageDiv = document.getElementById('modal-status-message');
+        let modalUploadedImageDataUrl = null; 
+
+        openSettingsModalBtn.onclick = function(event) { 
+            event.preventDefault(); 
+            settingsModal.style.display = "block";
+            loadSettingsIntoModal();
+        }
+        closeModalBtn.onclick = function() { settingsModal.style.display = "none"; }
+        window.onclick = function(event) { 
+            if (event.target == settingsModal) { settingsModal.style.display = "none"; }
+        }
+
+        function toggleModalConditionalInputs() {
+            const selectedBgType = document.querySelector('input[name="modal-bg-type"]:checked').value;
+            modalImageUploadInputContainer.style.display = selectedBgType === 'uploadedImage' ? 'block' : 'none';
+            modalOverlayInputContainer.style.display = selectedBgType === 'uploadedImage' ? 'block' : 'none';
+        }
+        modalBgTypeRadios.forEach(radio => radio.addEventListener('change', toggleModalConditionalInputs));
+
+        modalBgImageUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) { 
+                    modalImageUploadInfo.textContent = `File too large (${(file.size / 1024 / 1024).toFixed(2)} MB). Max 2MB recommended.`;
+                    modalImageUploadInfo.style.color = 'red';
+                    modalUploadedImageDataUrl = null; 
+                    modalBgImageUploadInput.value = ''; 
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    modalUploadedImageDataUrl = e.target.result;
+                    modalImageUploadInfo.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB). Ready to save.`;
+                    modalImageUploadInfo.style.color = '#555';
+                };
+                reader.onerror = () => {
+                    modalImageUploadInfo.textContent = 'Error reading file.';
+                    modalImageUploadInfo.style.color = 'red';
+                    modalUploadedImageDataUrl = null;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                modalUploadedImageDataUrl = null; 
+                const currentSavedName = localStorage.getItem('uploadedImage_Name');
+                 if(localStorage.getItem('backgroundType') === 'uploadedImage' && currentSavedName && document.querySelector('input[name="modal-bg-type"]:checked').value === 'uploadedImage'){
+                    modalImageUploadInfo.textContent = `Currently using: ${currentSavedName}. Upload new to change.`;
+                } else {
+                    modalImageUploadInfo.textContent = 'Max 2MB recommended. Stored in browser.';
+                }
+                modalImageUploadInfo.style.color = '#555';
+            }
+        });
+
+        function loadSettingsIntoModal() {
+            modalAccentColorInput.value = localStorage.getItem('quoteAccentColor') || getComputedStyle(document.documentElement).getPropertyValue('--quote-accent-color').trim();
+            modalQuoteTextSizeSelect.value = localStorage.getItem('quoteTextSize') || getComputedStyle(document.documentElement).getPropertyValue('--quote-text-size').trim();
+            const currentBgType = localStorage.getItem('backgroundType') || 'color';
+            const currentBgRadio = document.querySelector(`input[name="modal-bg-type"][value="${currentBgType}"]`);
+            if (currentBgRadio) currentBgRadio.checked = true;
+            const savedUploadedImageName = localStorage.getItem('uploadedImage_Name');
+            if (currentBgType === 'uploadedImage' && localStorage.getItem('uploadedImage_DataUrl')) {
+                modalImageUploadInfo.textContent = savedUploadedImageName ? `Currently using: ${savedUploadedImageName}. Upload new to change.` : 'Using previously uploaded image. Upload new to change.';
+            } else {
+                 modalImageUploadInfo.textContent = 'Max 2MB recommended. Stored in browser.';
+            }
+            modalBgOverlayCheckbox.checked = localStorage.getItem('backgroundOverlay') === 'true';
+            modalUploadedImageDataUrl = null; 
+            modalBgImageUploadInput.value = ''; 
+            toggleModalConditionalInputs();
+        }
+
+        modalSaveButton.addEventListener('click', () => {
+            localStorage.setItem('quoteAccentColor', modalAccentColorInput.value);
+            localStorage.setItem('quoteTextSize', modalQuoteTextSizeSelect.value);
+            const selectedBgType = document.querySelector('input[name="modal-bg-type"]:checked').value;
+            localStorage.setItem('backgroundType', selectedBgType);
+            
+            if (selectedBgType === 'uploadedImage') {
+                if (modalUploadedImageDataUrl) { 
+                    localStorage.setItem('uploadedImage_DataUrl', modalUploadedImageDataUrl);
+                    localStorage.setItem('uploadedImage_Name', modalBgImageUploadInput.files[0]?.name || 'Uploaded Image');
+                } else if (!localStorage.getItem('uploadedImage_DataUrl')) { 
+                    modalStatusMessageDiv.textContent = 'Please select an image file to upload or choose another background type.';
+                    modalStatusMessageDiv.className = 'status-message error';
+                    modalStatusMessageDiv.style.display = 'block';
+                    setTimeout(() => { modalStatusMessageDiv.style.display = 'none'; }, 3000);
+                    return; 
+                }
+                localStorage.setItem('backgroundOverlay', modalBgOverlayCheckbox.checked);
+            } else if (selectedBgType === 'color') {
+                localStorage.setItem('backgroundOverlay', 'false'); 
+            }
+            applySettings(); 
+            modalStatusMessageDiv.textContent = 'Settings saved successfully!';
+            modalStatusMessageDiv.className = 'status-message success';
+            modalStatusMessageDiv.style.display = 'block';
+            setTimeout(() => { 
+                modalStatusMessageDiv.style.display = 'none';
+            }, 2000);
+            if (selectedBgType === 'uploadedImage' && modalUploadedImageDataUrl) {
+                 loadSettingsIntoModal(); 
+            }
+            modalUploadedImageDataUrl = null; 
+        });
+        
+        // --- NEW: Share Functionality for Nav Button ---
+        const navShareBtn = document.getElementById('nav-share-btn');
+
+        function openFacebookShare(textToShare) {
+            const placeholderUrl = "https://example.com"; // Facebook requires a URL.
+            const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(placeholderUrl)}&quote=${encodeURIComponent(textToShare)}`;
+            window.open(fbShareUrl, '_blank', 'noopener,noreferrer,width=600,height=400');
+        }
+
+        if (navShareBtn) {
+            navShareBtn.addEventListener('click', async (event) => {
+                event.preventDefault();
+                const currentQuoteText = quoteTextElement.textContent;
+                let currentAuthor = quoteAuthorElement.textContent.replace(/^—\s*/, ''); // Remove em-dash
+
+                // Avoid including "Unknown" or "Error" as the author in the share text
+                if (currentAuthor.toLowerCase() === 'unknown' || currentAuthor.toLowerCase() === 'error' || !currentAuthor) {
+                    currentAuthor = ''; 
+                }
+
+                const textToShare = `"${currentQuoteText}"${currentAuthor ? ` - ${currentAuthor}` : ''}`;
+
+                if (navigator.share) { // Use Web Share API if available
+                    try {
+                        await navigator.share({
+                            title: 'Check out this quote!',
+                            text: textToShare,
+                            // url: window.location.href // or a canonical URL if your site is live
+                        });
+                        console.log('Quote shared successfully via Web Share API');
+                    } catch (error) {
+                        console.error('Error using Web Share API:', error);
+                        // Fallback to Facebook if Web Share API fails (e.g., user cancels or error)
+                        openFacebookShare(textToShare);
+                    }
+                } else {
+                    // Fallback if Web Share API is not supported
+                    console.log('Web Share API not supported, falling back to Facebook share.');
+                    openFacebookShare(textToShare);
+                }
+            });
+        }
+
+        // --- Initial setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            applySettings(); 
+            displayQuote();  
+        });
+        // Listener for storage changes
+        window.addEventListener('storage', (event) => {
+            const relevantKeys = [
+                'quoteAccentColor', 'quoteTextSize', 'backgroundType', 
+                'uploadedImage_DataUrl', 'uploadedImage_Name', 'backgroundOverlay'
+            ];
+            if (event.key === null || relevantKeys.includes(event.key)) {
+                applySettings();
+            }
+        });
+    </script>
+</body>
+</html>
